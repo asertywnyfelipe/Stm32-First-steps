@@ -43,7 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim14;
 
-
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
@@ -53,7 +53,7 @@ TIM_HandleTypeDef htim14;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM14_Init(void);
-static void MX_USART2_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -94,7 +94,7 @@ uint16_t timer_val;
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM14_Init();
-
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
  // uart_buf_len = sprintf(uart_buf, "Timer test\r\n");
@@ -109,28 +109,31 @@ uint16_t timer_val;
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  //timer value print
+	  timer_val = __HAL_TIM_GET_COUNTER(&htim14);
+	  printf("Wartosc timera jebhehe anego: %d\n", timer_val);
+
+	  //Led blinking
+	  if (timer_val>1000)
+	  {
+	  HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_SET);
+	  }
+	  else
+	  {
+	  HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
+	  }
+
+	  HAL_Delay(500);
+	    }
+
+
     /* USER CODE END WHILE */
 
-//timer value print
-timer_val = __HAL_TIM_GET_COUNTER(&htim14);
-printf("Wartosc timera jebhehe anego: %d\n", timer_val);
+    /* USER CODE BEGIN 3 */
 
-//Led blinking
-if (timer_val>1000)
-{
-HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_SET);
-}
-else
-{
-HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
-}
-
-
-
-
-HAL_Delay(500);
-  }
-}
+  /* USER CODE END 3 */
+	}
 
 /**
   * @brief System Clock Configuration
@@ -189,9 +192,9 @@ static void MX_TIM14_Init(void)
 
   /* USER CODE END TIM14_Init 1 */
   htim14.Instance = TIM14;
-  htim14.Init.Prescaler = 15999;
+  htim14.Init.Prescaler = 7999;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 2000;
+  htim14.Init.Period = 65535;
   htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
@@ -209,7 +212,33 @@ static void MX_TIM14_Init(void)
   * @param None
   * @retval None
   */
+static void MX_USART2_UART_Init(void)
+{
 
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
 
 /**
   * @brief GPIO Initialization Function
