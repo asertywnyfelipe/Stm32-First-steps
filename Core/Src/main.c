@@ -113,7 +113,7 @@ uint16_t timer_val;
 
 //timer value print
 timer_val = __HAL_TIM_GET_COUNTER(&htim14);
-printf("Wartosc timera jebanego: %d\n", timer_val);
+printf("Wartosc timera jebhehe anego: %d\n", timer_val);
 
 //Led blinking
 if (timer_val>1000)
