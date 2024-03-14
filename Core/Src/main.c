@@ -28,10 +28,68 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+//typedef void (*ButtonPressCallback)(TIM_HandleTypeDef *);
+//typedef void (*ButtonReleaseCallback)(TIM_HandleTypeDef *);
+
+typedef void (*ButtonCallback)(TIM_HandleTypeDef *);
+typedef void (*TimerCallback)(TIM_HandleTypeDef *);
+
+typedef struct {
+    GPIO_TypeDef* port;
+    uint16_t pin;
+    ButtonCallback press_callback;
+    ButtonCallback release_callback;
+} Button;
+
+typedef struct {
+    TimerCallback startTimer;
+    ButtonCallback stopTimer;
+} TimerON;
+
+
+
+void startTimer1(TIM_HandleTypeDef *htim) {
+}
+
+
+void stopTimer1(TIM_HandleTypeDef *htim) {
+}
+
+TimerON timers[]=
+{
+		{startTimer1, stopTimer1},
+};
+
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+void handleButtonPress1(TIM_HandleTypeDef *htim) {
+
+			uint16_t timer_val;
+			timer_val = __HAL_TIM_GET_COUNTER(htim);
+			 if (timer_val>=2000)
+			 {
+			 HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_SET);
+			 printf("Wartosc timera: %d\n", timer_val);
+			 HAL_Delay(100);
+			 }
+
+}
+
+void handleButtonRelease1(TIM_HandleTypeDef *htim) {
+			HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
+			htim->Instance->CNT = 0;
+}
+
+Button buttons[] = {
+    {GPIOA, GPIO_PIN_0, handleButtonPress1, handleButtonRelease1},
+};
+
+#define NUM_BUTTONS (sizeof(buttons) / sizeof(buttons[0]))
+
 
 /* USER CODE END PD */
 
@@ -42,7 +100,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim14;
-
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
@@ -63,6 +120,10 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+//void handleButtonPress1(void);
+//void handleButtonPress2(void);
+
+
 /* USER CODE END 0 */
 
 /**
@@ -72,75 +133,51 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-uint8_t buffer_uart[]="Hello Dupa\r\n";
-int uart_buf_len;
-uint16_t timer_val;
+
+
   /* USER CODE END 1 */
-
   /* MCU Configuration--------------------------------------------------------*/
-
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
-
   /* Configure the system clock */
   SystemClock_Config();
-
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_TIM14_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
  // uart_buf_len = sprintf(uart_buf, "Timer test\r\n");
  // HAL_UART_Transmit(&husart2, (uint8_t *)uart_buf, uart_buf_len, 100);
-
   //Start timer
   HAL_TIM_Base_Start(&htim14);
-
   /* USER CODE END 2 */
-
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  //timer value print
-	  timer_val = __HAL_TIM_GET_COUNTER(&htim14);
-	  printf("Wartosc timera jebhehe anego: %d\n", timer_val);
-
-	  //Led blinking
-	  if (timer_val>1000)
+	  for (int i = 0; i < NUM_BUTTONS; i++)
 	  {
-	  HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_SET);
-	  }
-	  else
-	  {
-	  HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
-	  }
-	  HAL_Delay(100);
-	  HAL_UART_Transmit(&huart2, buffer_uart, sizeof(buffer_uart), HAL_MAX_DELAY);
-
-	 // HAL_UART_Receive()
-
+	              if (HAL_GPIO_ReadPin(buttons[i].port, buttons[i].pin) == 1)
+	              {
+	                  buttons[i].press_callback(&htim14);
+	              }
+	              if (HAL_GPIO_ReadPin(buttons[i].port, buttons[i].pin) == 0)
+	              {
+	            	  buttons[i].release_callback(&htim14);
+	              }
 	    }
-
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
   /* USER CODE END 3 */
 }
-
+}
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -198,9 +235,9 @@ static void MX_TIM14_Init(void)
 
   /* USER CODE END TIM14_Init 1 */
   htim14.Instance = TIM14;
-  htim14.Init.Prescaler = 16000;
+  htim14.Init.Prescaler = 15999;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 2000;
+  htim14.Init.Period = 5000;
   htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
@@ -281,6 +318,12 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pin : BLUE_LED_Pin */
   GPIO_InitStruct.Pin = BLUE_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -293,6 +336,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+
+
+
+
+
+
+
 
 /* USER CODE END 4 */
 
