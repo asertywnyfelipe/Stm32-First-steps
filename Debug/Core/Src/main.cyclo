@@ -1,5 +1,7 @@
-../Core/Src/main.c:70:5:main	2
-../Core/Src/main.c:139:6:SystemClock_Config	3
-../Core/Src/main.c:181:13:MX_TIM14_Init	2
-../Core/Src/main.c:219:13:MX_GPIO_Init	1
-../Core/Src/main.c:251:6:Error_Handler	1
+../Core/Src/main.c:55:6:startTimer1	1
+../Core/Src/main.c:59:6:stopTimer1	1
+../Core/Src/main.c:73:6:handleButtonPress1	2
+../Core/Src/main.c:94:6:handleButtonRelease1	1
+../Core/Src/main.c:139:5:main	4
+../Core/Src/main.c:216:6:SystemClock_Config	3
+../Core/Src/main.c:269:6:Error_Handler	1
